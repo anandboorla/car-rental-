@@ -1,0 +1,1276 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR Car Rentals</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+  <script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        brand: { 50:'#fff7ed',100:'#ffedd5',200:'#fed7aa',300:'#fdba74',400:'#fb923c',500:'#f97316',600:'#ea580c',700:'#c2410c',800:'#9a3412',900:'#7c2d12' },
+        dark: { 50:'#f8fafc',100:'#f1f5f9',200:'#e2e8f0',300:'#cbd5e1',400:'#94a3b8',500:'#64748b',600:'#475569',700:'#334155',800:'#1e293b',900:'#0f172a',950:'#020617' }
+      },
+      fontFamily: { outfit:['Outfit','sans-serif'], mono:['Space Mono','monospace'] }
+    }
+  }
+}
+</script>
+  <style>
+html,body{height:100%;margin:0;font-family:'Outfit',sans-serif}
+body{overflow-x:hidden}
+.app-wrapper{min-height:100%;width:100%;background:#0f172a;color:#e2e8f0}
+.glass{background:rgba(30,41,59,0.7);backdrop-filter:blur(12px);border:1px solid rgba(148,163,184,0.15)}
+.gradient-text{background:linear-gradient(135deg,#fb923c,#f97316,#ea580c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.card-hover{transition:all .3s ease}
+.card-hover:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(249,115,22,0.15)}
+.btn-primary{background:linear-gradient(135deg,#f97316,#ea580c);transition:all .3s}
+.btn-primary:hover{background:linear-gradient(135deg,#fb923c,#f97316);transform:scale(1.02)}
+.btn-primary:disabled{opacity:.5;transform:none;cursor:not-allowed}
+.fade-in{animation:fadeIn .5s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse-glow{0%,100%{box-shadow:0 0 20px rgba(249,115,22,0.3)}50%{box-shadow:0 0 40px rgba(249,115,22,0.6)}}
+.glow{animation:pulse-glow 2s infinite}
+.nav-link{position:relative;padding:4px 0;transition:color .3s}
+.nav-link::after{content:'';position:absolute;bottom:0;left:0;width:0;height:2px;background:#f97316;transition:width .3s}
+.nav-link:hover::after,.nav-link.active::after{width:100%}
+.nav-link:hover,.nav-link.active{color:#fb923c}
+.toast{position:fixed;top:20px;right:20px;z-index:9999;padding:16px 24px;border-radius:12px;color:#fff;font-weight:500;animation:slideIn .3s ease,fadeOut .3s ease 3.7s forwards;max-width:400px}
+.toast-success{background:linear-gradient(135deg,#22c55e,#16a34a)}
+.toast-error{background:linear-gradient(135deg,#ef4444,#dc2626)}
+.toast-info{background:linear-gradient(135deg,#3b82f6,#2563eb)}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes fadeOut{to{opacity:0;transform:translateX(100%)}}
+input,select,textarea{background:rgba(30,41,59,0.8);border:1px solid rgba(148,163,184,0.2);color:#e2e8f0;border-radius:8px;padding:10px 14px;width:100%;transition:border-color .3s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#f97316}
+select option{background:#1e293b;color:#e2e8f0}
+.tab-btn{padding:10px 20px;border-radius:8px;font-weight:500;transition:all .3s;cursor:pointer;border:1px solid transparent}
+.tab-btn.active{background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;border-color:#f97316}
+.tab-btn:not(.active){color:#94a3b8;border-color:rgba(148,163,184,0.2)}
+.tab-btn:not(.active):hover{color:#fb923c;border-color:#fb923c}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-content{background:#1e293b;border:1px solid rgba(148,163,184,0.15);border-radius:16px;max-width:600px;width:100%;max-height:90%;overflow-y:auto;padding:30px;animation:fadeIn .3s ease}
+.badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.badge-green{background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3)}
+.badge-red{background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3)}
+.badge-yellow{background:rgba(234,179,8,0.15);color:#eab308;border:1px solid rgba(234,179,8,0.3)}
+.badge-blue{background:rgba(59,130,246,0.15);color:#3b82f6;border:1px solid rgba(59,130,246,0.3)}
+.badge-orange{background:rgba(249,115,22,0.15);color:#f97316;border:1px solid rgba(249,115,22,0.3)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#0f172a}
+::-webkit-scrollbar-thumb{background:#475569;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#64748b}
+.hero-pattern{background-image:radial-gradient(circle at 20% 50%,rgba(249,115,22,0.08) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(249,115,22,0.05) 0%,transparent 40%),radial-gradient(circle at 50% 80%,rgba(249,115,22,0.06) 0%,transparent 45%)}
+.stat-card{background:linear-gradient(135deg,rgba(30,41,59,0.8),rgba(15,23,42,0.9));border:1px solid rgba(148,163,184,0.1)}
+</style>
+  <style>body { box-sizing: border-box; }</style>
+ </head>
+ <body class="h-full">
+  <div class="app-wrapper" id="app"><!-- Toast container -->
+   <div id="toast-container"></div><!-- NAVIGATION -->
+   <nav id="main-nav" class="fixed top-0 left-0 right-0 z-50 glass">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+     <div class="flex items-center gap-3 cursor-pointer" onclick="navigate('home')">
+      <div class="w-10 h-10 rounded-xl btn-primary flex items-center justify-center font-bold text-white text-lg">
+       AR
+      </div>
+      <div>
+       <div class="font-bold text-white text-lg leading-tight" id="nav-brand">
+        AR Car Rentals
+       </div>
+       <div class="text-[10px] text-brand-400 font-mono tracking-wider">
+        TELANGANA &amp; ANDHRA PRADESH
+       </div>
+      </div>
+     </div>
+     <div class="hidden md:flex items-center gap-6" id="nav-links"><a class="nav-link text-sm cursor-pointer active" onclick="navigate('home')" data-nav="home">Home</a> <a class="nav-link text-sm cursor-pointer" onclick="navigate('cars')" data-nav="cars">Cars</a> <a class="nav-link text-sm cursor-pointer" onclick="navigate('about')" data-nav="about">About Us</a> <a class="nav-link text-sm cursor-pointer" onclick="navigate('register')" data-nav="register" id="nav-register">Register</a> <a class="nav-link text-sm cursor-pointer" onclick="navigate('login')" data-nav="login" id="nav-login">Login</a>
+     </div>
+     <div class="hidden items-center gap-3" id="nav-user-info"><span class="text-sm text-brand-400 font-medium" id="nav-username"></span> <button onclick="handleLogout()" class="text-xs bg-red-500/20 text-red-400 px-3 py-1.5 rounded-lg hover:bg-red-500/30 transition">Logout</button>
+     </div><button class="md:hidden text-white" onclick="toggleMobile()"><i data-lucide="menu" style="width:24px;height:24px"></i></button>
+    </div>
+    <div class="hidden md:hidden px-4 pb-4 space-y-2" id="mobile-menu"><a class="block py-2 text-sm text-dark-300 hover:text-brand-400 cursor-pointer" onclick="navigate('home');toggleMobile()">Home</a> <a class="block py-2 text-sm text-dark-300 hover:text-brand-400 cursor-pointer" onclick="navigate('cars');toggleMobile()">Cars</a> <a class="block py-2 text-sm text-dark-300 hover:text-brand-400 cursor-pointer" onclick="navigate('about');toggleMobile()">About Us</a> <a class="block py-2 text-sm text-dark-300 hover:text-brand-400 cursor-pointer" onclick="navigate('register');toggleMobile()" id="mob-register">Register</a> <a class="block py-2 text-sm text-dark-300 hover:text-brand-400 cursor-pointer" onclick="navigate('login');toggleMobile()" id="mob-login">Login</a> <a class="block py-2 text-sm text-red-400 cursor-pointer hidden" onclick="handleLogout();toggleMobile()" id="mob-logout">Logout</a>
+    </div>
+   </nav><!-- PAGES CONTAINER -->
+   <div class="pt-16" id="pages-container"><!-- HOME PAGE -->
+    <div id="page-home" class="page fade-in"><!-- Hero -->
+     <section class="hero-pattern py-20 px-4">
+      <div class="max-w-6xl mx-auto text-center">
+       <div class="inline-block mb-6 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/20"><span class="text-brand-400 text-sm font-medium">🚗 New Service in Telangana &amp; Andhra Pradesh</span>
+       </div>
+       <h1 class="text-4xl md:text-6xl font-900 mb-6 leading-tight" id="hero-title"><span class="text-white">Premium Car Rental</span><br><span class="gradient-text">With Professional Drivers</span></h1>
+       <p class="text-dark-400 text-lg md:text-xl max-w-2xl mx-auto mb-10" id="hero-subtitle">Experience hassle-free travel across Telangana &amp; Andhra Pradesh with our reliable car rental service and experienced drivers.</p>
+       <div class="flex flex-wrap gap-4 justify-center"><button onclick="navigate('cars')" class="btn-primary text-white px-8 py-3 rounded-xl font-semibold flex items-center gap-2"><i data-lucide="car" style="width:20px;height:20px"></i> Explore Cars</button> <button onclick="navigate('register')" class="glass text-white px-8 py-3 rounded-xl font-semibold hover:border-brand-500/50 transition flex items-center gap-2"><i data-lucide="user-plus" style="width:20px;height:20px"></i> Register Now</button>
+       </div>
+       <div class="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+        <div class="stat-card rounded-xl p-4 text-center">
+         <div class="text-2xl font-bold text-brand-400" id="stat-cars">
+          0
+         </div>
+         <div class="text-xs text-dark-400">
+          Available Cars
+         </div>
+        </div>
+        <div class="stat-card rounded-xl p-4 text-center">
+         <div class="text-2xl font-bold text-brand-400">
+          2
+         </div>
+         <div class="text-xs text-dark-400">
+          States Covered
+         </div>
+        </div>
+        <div class="stat-card rounded-xl p-4 text-center">
+         <div class="text-2xl font-bold text-brand-400">
+          24/7
+         </div>
+         <div class="text-xs text-dark-400">
+          Support
+         </div>
+        </div>
+        <div class="stat-card rounded-xl p-4 text-center">
+         <div class="text-2xl font-bold text-brand-400">
+          Pro
+         </div>
+         <div class="text-xs text-dark-400">
+          Drivers
+         </div>
+        </div>
+       </div>
+      </div>
+     </section><!-- Services -->
+     <section class="py-16 px-4">
+      <div class="max-w-6xl mx-auto">
+       <h2 class="text-3xl font-bold text-center mb-2 text-white">Our Services</h2>
+       <p class="text-center text-dark-400 mb-12">Why choose AR Car Rentals?</p>
+       <div class="grid md:grid-cols-3 gap-6">
+        <div class="glass rounded-2xl p-6 card-hover text-center">
+         <div class="w-14 h-14 mx-auto mb-4 rounded-xl bg-brand-500/10 flex items-center justify-center">
+          <i data-lucide="shield-check" style="width:28px;height:28px;color:#f97316"></i>
+         </div>
+         <h3 class="font-bold text-white mb-2">Professional Drivers</h3>
+         <p class="text-dark-400 text-sm">Experienced, licensed drivers who know every route in Telangana &amp; AP.</p>
+        </div>
+        <div class="glass rounded-2xl p-6 card-hover text-center">
+         <div class="w-14 h-14 mx-auto mb-4 rounded-xl bg-brand-500/10 flex items-center justify-center">
+          <i data-lucide="wallet" style="width:28px;height:28px;color:#f97316"></i>
+         </div>
+         <h3 class="font-bold text-white mb-2">Affordable Pricing</h3>
+         <p class="text-dark-400 text-sm">Transparent pricing with no hidden charges. Pay per km with flexible packages.</p>
+        </div>
+        <div class="glass rounded-2xl p-6 card-hover text-center">
+         <div class="w-14 h-14 mx-auto mb-4 rounded-xl bg-brand-500/10 flex items-center justify-center">
+          <i data-lucide="clock" style="width:28px;height:28px;color:#f97316"></i>
+         </div>
+         <h3 class="font-bold text-white mb-2">Flexible Packages</h3>
+         <p class="text-dark-400 text-sm">3 days, 1 week, 2 weeks, 3 weeks or monthly — pick what suits you.</p>
+        </div>
+       </div>
+      </div>
+     </section><!-- Featured Cars on Home -->
+     <section class="py-16 px-4 bg-dark-950/50">
+      <div class="max-w-6xl mx-auto">
+       <h2 class="text-3xl font-bold text-center mb-2 text-white">Featured Cars</h2>
+       <p class="text-center text-dark-400 mb-10">Browse our top picks</p>
+       <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="home-featured-cars">
+        <div class="text-center text-dark-500 py-12 col-span-full">
+         No cars available yet. Admin will add cars soon!
+        </div>
+       </div>
+       <div class="text-center mt-8">
+        <button onclick="navigate('cars')" class="btn-primary text-white px-6 py-3 rounded-xl font-semibold">View All Cars</button>
+       </div>
+      </div>
+     </section><!-- CTA -->
+     <section class="py-16 px-4">
+      <div class="max-w-4xl mx-auto glass rounded-3xl p-10 text-center relative overflow-hidden">
+       <div class="absolute inset-0 bg-gradient-to-r from-brand-500/5 to-brand-700/5"></div>
+       <div class="relative z-10">
+        <h2 class="text-3xl font-bold text-white mb-4">Ready to Hit the Road?</h2>
+        <p class="text-dark-400 mb-8">Book your car today and enjoy a comfortable ride with our professional drivers.</p>
+        <div class="flex flex-wrap gap-4 justify-center"><a href="https://wa.me/916301247034?text=Hi%20AR%20Car%20Rentals!%20I%20want%20to%20book%20a%20car." target="_blank" rel="noopener noreferrer" class="bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition"><i data-lucide="message-circle" style="width:20px;height:20px"></i> WhatsApp Us</a> <a href="tel:6301247034" class="btn-primary text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2"><i data-lucide="phone" style="width:20px;height:20px"></i> Call: 6301247034</a>
+        </div>
+       </div>
+      </div>
+     </section>
+    </div><!-- CARS PAGE -->
+    <div id="page-cars" class="page fade-in hidden">
+     <section class="py-10 px-4">
+      <div class="max-w-6xl mx-auto">
+       <h1 class="text-3xl font-bold text-white mb-2">Our Fleet</h1>
+       <p class="text-dark-400 mb-8">Find the perfect car for your journey</p><!-- Filters -->
+       <div class="glass rounded-2xl p-6 mb-8">
+        <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
+         <div><label class="text-xs text-dark-400 mb-1 block">Car Type</label> <select id="filter-type" onchange="renderPublicCars()"> <option value="">All Types</option> <option>Sedan</option><option>SUV</option><option>Luxury</option><option>Hatchback</option><option>MUV</option><option>Minivan</option><option>Convertible</option> </select>
+         </div>
+         <div><label class="text-xs text-dark-400 mb-1 block">Seater</label> <select id="filter-seater" onchange="renderPublicCars()"> <option value="">All</option><option>2</option><option>4</option><option>5</option><option>7</option><option>8</option> </select>
+         </div>
+         <div><label class="text-xs text-dark-400 mb-1 block">Fuel Type</label> <select id="filter-fuel" onchange="renderPublicCars()"> <option value="">All</option><option>Petrol</option><option>Diesel</option><option>Electric</option><option>CNG</option><option>Hybrid</option> </select>
+         </div>
+         <div><label class="text-xs text-dark-400 mb-1 block">AC</label> <select id="filter-ac" onchange="renderPublicCars()"> <option value="">All</option><option>AC</option><option>Non-AC</option> </select>
+         </div>
+        </div>
+       </div>
+       <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="public-cars-grid">
+        <div class="text-center text-dark-500 py-12 col-span-full">
+         No cars available yet.
+        </div>
+       </div>
+      </div>
+     </section>
+    </div><!-- ABOUT PAGE -->
+    <div id="page-about" class="page fade-in hidden">
+     <section class="py-10 px-4">
+      <div class="max-w-4xl mx-auto">
+       <h1 class="text-3xl font-bold text-white mb-6">About AR Car Rentals</h1>
+       <div class="glass rounded-2xl p-8 mb-8">
+        <p class="text-dark-300 leading-relaxed mb-6" id="about-text">AR Car Rentals is a brand new car rental service proudly serving the states of Telangana and Andhra Pradesh. We provide premium vehicles along with professional, experienced drivers who are well-versed with every route across both states. Whether you're traveling for business, family trips, weddings, pilgrimages, or any other purpose, we have the right car and driver for you.</p>
+        <p class="text-dark-300 leading-relaxed mb-6">Our fleet includes Sedans, SUVs, Luxury cars, Hatchbacks, MUVs, Minivans and more. All our vehicles are well-maintained, insured, and equipped for comfortable long-distance travel. Our drivers speak Telugu, Hindi, English, and Urdu to ensure smooth communication.</p>
+        <div class="grid sm:grid-cols-2 gap-6 mt-8">
+         <div class="glass rounded-xl p-6">
+          <h3 class="font-bold text-white mb-3 flex items-center gap-2"><i data-lucide="phone" style="width:20px;height:20px;color:#f97316"></i> Contact Us</h3>
+          <p class="text-dark-300">Phone: <a href="tel:6301247034" class="text-brand-400 hover:underline">6301247034</a></p>
+          <p class="text-dark-300 mt-2">WhatsApp: <a href="https://wa.me/916301247034" target="_blank" rel="noopener noreferrer" class="text-green-400 hover:underline">6301247034</a></p>
+         </div>
+         <div class="glass rounded-xl p-6">
+          <h3 class="font-bold text-white mb-3 flex items-center gap-2"><i data-lucide="map-pin" style="width:20px;height:20px;color:#f97316"></i> Service Areas</h3>
+          <p class="text-dark-300">Telangana (All districts)</p>
+          <p class="text-dark-300">Andhra Pradesh (All districts)</p>
+         </div>
+        </div>
+       </div>
+      </div>
+     </section>
+    </div><!-- REGISTER PAGE -->
+    <div id="page-register" class="page fade-in hidden">
+     <section class="py-10 px-4">
+      <div class="max-w-md mx-auto">
+       <h1 class="text-3xl font-bold text-white mb-2 text-center">Customer Registration</h1>
+       <p class="text-dark-400 text-center mb-8">Create your account to book cars</p>
+       <form class="glass rounded-2xl p-8 space-y-4" onsubmit="handleRegister(event)">
+        <div>
+         <label class="text-xs text-dark-400 mb-1 block" for="reg-name">Full Name</label><input id="reg-name" required placeholder="Enter your full name">
+        </div>
+        <div>
+         <label class="text-xs text-dark-400 mb-1 block" for="reg-email">Email</label><input id="reg-email" type="email" required placeholder="yourname@email.com">
+        </div>
+        <div>
+         <label class="text-xs text-dark-400 mb-1 block" for="reg-password">Password</label><input id="reg-password" type="password" required minlength="6" placeholder="Min 6 characters">
+        </div>
+        <div>
+         <label class="text-xs text-dark-400 mb-1 block" for="reg-mobile">Mobile Number</label><input id="reg-mobile" required placeholder="10-digit mobile number">
+        </div>
+        <div>
+         <label class="text-xs text-dark-400 mb-1 block" for="reg-address">Address</label><textarea id="reg-address" required rows="2" placeholder="Your full address"></textarea>
+        </div><button type="submit" class="btn-primary text-white w-full py-3 rounded-xl font-semibold" id="reg-btn">Register</button>
+        <p class="text-center text-sm text-dark-400">Already registered? <a class="text-brand-400 cursor-pointer hover:underline" onclick="navigate('login')">Login here</a></p>
+       </form>
+      </div>
+     </section>
+    </div><!-- LOGIN PAGE -->
+    <div id="page-login" class="page fade-in hidden">
+     <section class="py-10 px-4">
+      <div class="max-w-md mx-auto">
+       <h1 class="text-3xl font-bold text-white mb-8 text-center">Login</h1>
+       <div class="flex gap-2 mb-6 justify-center"><button class="tab-btn active" id="tab-customer-login" onclick="switchLoginTab('customer')">Customer Login</button> <button class="tab-btn" id="tab-admin-login" onclick="switchLoginTab('admin')">Admin Login</button>
+       </div><!-- Customer Login -->
+       <form class="glass rounded-2xl p-8 space-y-4" id="customer-login-form" onsubmit="handleCustomerLogin(event)">
+        <div>
+         <label class="text-xs text-dark-400 mb-1 block" for="cust-email">Email</label><input id="cust-email" type="email" required placeholder="Your registered email">
+        </div>
+        <div>
+         <label class="text-xs text-dark-400 mb-1 block" for="cust-password">Password</label><input id="cust-password" type="password" required placeholder="Your password">
+        </div><button type="submit" class="btn-primary text-white w-full py-3 rounded-xl font-semibold" id="cust-login-btn">Login</button>
+        <p class="text-center text-sm text-dark-400">New customer? <a class="text-brand-400 cursor-pointer hover:underline" onclick="navigate('register')">Register here</a></p>
+       </form><!-- Admin Login -->
+       <form class="glass rounded-2xl p-8 space-y-4 hidden" id="admin-login-form" onsubmit="handleAdminLogin(event)">
+        <div>
+         <label class="text-xs text-dark-400 mb-1 block" for="admin-user">Username</label><input id="admin-user" required placeholder="Admin username">
+        </div>
+        <div>
+         <label class="text-xs text-dark-400 mb-1 block" for="admin-pass">Password</label><input id="admin-pass" type="password" required placeholder="Admin password">
+        </div><button type="submit" class="btn-primary text-white w-full py-3 rounded-xl font-semibold" id="admin-login-btn">Login as Admin</button>
+       </form>
+      </div>
+     </section>
+    </div><!-- CUSTOMER DASHBOARD -->
+    <div id="page-customer" class="page fade-in hidden">
+     <section class="py-6 px-4">
+      <div class="max-w-6xl mx-auto">
+       <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <div>
+         <h1 class="text-2xl font-bold text-white">Welcome, <span id="cust-dash-name"></span>!</h1>
+         <p class="text-dark-400 text-sm">Session expires in <span id="session-timer" class="text-brand-400 font-mono"></span></p>
+        </div>
+       </div>
+       <div class="flex flex-wrap gap-2 mb-6"><button class="tab-btn active" data-ctab="avail" onclick="switchCustTab('avail')">Available Cars</button> <button class="tab-btn" data-ctab="book" onclick="switchCustTab('book')">Book a Car</button> <button class="tab-btn" data-ctab="mybookings" onclick="switchCustTab('mybookings')">My Bookings</button> <button class="tab-btn" data-ctab="history" onclick="switchCustTab('history')">Booking History</button>
+       </div><!-- Customer Tabs Content -->
+       <div id="ctab-avail" class="ctab">
+        <div class="glass rounded-2xl p-6 mb-6">
+         <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+           <label class="text-xs text-dark-400 mb-1 block">Car Type</label><select id="cust-filter-type" onchange="renderCustCars()"><option value="">All Types</option><option>Sedan</option><option>SUV</option><option>Luxury</option><option>Hatchback</option><option>MUV</option><option>Minivan</option><option>Convertible</option></select>
+          </div>
+          <div>
+           <label class="text-xs text-dark-400 mb-1 block">Seater</label><select id="cust-filter-seater" onchange="renderCustCars()"><option value="">All</option><option>2</option><option>4</option><option>5</option><option>7</option><option>8</option></select>
+          </div>
+          <div>
+           <label class="text-xs text-dark-400 mb-1 block">Fuel</label><select id="cust-filter-fuel" onchange="renderCustCars()"><option value="">All</option><option>Petrol</option><option>Diesel</option><option>Electric</option><option>CNG</option><option>Hybrid</option></select>
+          </div>
+          <div>
+           <label class="text-xs text-dark-400 mb-1 block">AC</label><select id="cust-filter-ac" onchange="renderCustCars()"><option value="">All</option><option>AC</option><option>Non-AC</option></select>
+          </div>
+         </div>
+        </div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="cust-cars-grid">
+         <div class="text-center text-dark-500 py-12 col-span-full">
+          No cars available.
+         </div>
+        </div>
+       </div>
+       <div id="ctab-book" class="ctab hidden">
+        <div class="max-w-2xl mx-auto glass rounded-2xl p-8">
+         <h2 class="text-xl font-bold text-white mb-6">Book a Car</h2>
+         <form onsubmit="handleBooking(event)" class="space-y-4" id="booking-form">
+          <div class="grid sm:grid-cols-2 gap-4">
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="book-type">Car Type</label><select id="book-type" required onchange="updateBookingCars()"><option value="">Select Type</option><option>Sedan</option><option>SUV</option><option>Luxury</option><option>Hatchback</option><option>MUV</option><option>Minivan</option><option>Convertible</option></select>
+           </div>
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="book-seater">Seater</label><select id="book-seater" required onchange="updateBookingCars()"><option value="">Select</option><option>2</option><option>4</option><option>5</option><option>7</option><option>8</option></select>
+           </div>
+          </div>
+          <div>
+           <label class="text-xs text-dark-400 mb-1 block" for="book-car">Select Car</label><select id="book-car" required><option value="">-- Select Car Type &amp; Seater First --</option></select>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-4">
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="book-passengers">No. of Passengers</label><input id="book-passengers" type="number" min="1" max="20" required placeholder="e.g. 4">
+           </div>
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="book-purpose">Rent Purpose</label><input id="book-purpose" required placeholder="e.g. Family Trip, Wedding">
+           </div>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-4">
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="book-start">Start Date</label><input id="book-start" type="date" required>
+           </div>
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="book-end">End Date</label><input id="book-end" type="date" required>
+           </div>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-4">
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="book-from">From Place</label><input id="book-from" required placeholder="Starting city/town">
+           </div>
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="book-to">To Place</label><input id="book-to" required placeholder="Destination city/town">
+           </div>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-4">
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="book-distance">Approx Distance (km)</label><input id="book-distance" type="number" min="1" required placeholder="e.g. 300">
+           </div>
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="book-lang">Driver Language</label><select id="book-lang" required><option value="">Select</option><option>Telugu</option><option>Hindi</option><option>English</option><option>Urdu</option></select>
+           </div>
+          </div>
+          <div>
+           <label class="text-xs text-dark-400 mb-1 block" for="book-package">Package</label><select id="book-package" required><option value="">Select Package</option><option value="3">3 Days</option><option value="7">1 Week</option><option value="14">2 Weeks</option><option value="21">3 Weeks</option><option value="30">1 Month</option></select>
+          </div><button type="submit" class="btn-primary text-white w-full py-3 rounded-xl font-semibold" id="book-btn">Calculate Bill &amp; Book</button>
+         </form>
+        </div><!-- Bill Modal will be inserted dynamically -->
+       </div>
+       <div id="ctab-mybookings" class="ctab hidden">
+        <div id="my-bookings-list">
+         <div class="text-center text-dark-500 py-12">
+          No bookings yet.
+         </div>
+        </div>
+       </div>
+       <div id="ctab-history" class="ctab hidden">
+        <div id="booking-history-list">
+         <div class="text-center text-dark-500 py-12">
+          No booking history.
+         </div>
+        </div>
+       </div>
+      </div>
+     </section>
+    </div><!-- ADMIN DASHBOARD -->
+    <div id="page-admin" class="page fade-in hidden">
+     <section class="py-6 px-4">
+      <div class="max-w-6xl mx-auto">
+       <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <div>
+         <h1 class="text-2xl font-bold text-white">Admin Dashboard</h1>
+         <p class="text-dark-400 text-sm">Session expires in <span id="admin-timer" class="text-brand-400 font-mono"></span></p>
+        </div>
+       </div><!-- Stats -->
+       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="stat-card rounded-xl p-4 text-center">
+         <div class="text-2xl font-bold text-brand-400" id="admin-total-cars">
+          0
+         </div>
+         <div class="text-xs text-dark-400">
+          Total Cars
+         </div>
+        </div>
+        <div class="stat-card rounded-xl p-4 text-center">
+         <div class="text-2xl font-bold text-green-400" id="admin-booked-cars">
+          0
+         </div>
+         <div class="text-xs text-dark-400">
+          Booked Cars
+         </div>
+        </div>
+        <div class="stat-card rounded-xl p-4 text-center">
+         <div class="text-2xl font-bold text-blue-400" id="admin-free-cars">
+          0
+         </div>
+         <div class="text-xs text-dark-400">
+          Available Cars
+         </div>
+        </div>
+        <div class="stat-card rounded-xl p-4 text-center">
+         <div class="text-2xl font-bold text-purple-400" id="admin-total-customers">
+          0
+         </div>
+         <div class="text-xs text-dark-400">
+          Customers
+         </div>
+        </div>
+       </div>
+       <div class="flex flex-wrap gap-2 mb-6"><button class="tab-btn active" data-atab="manage-cars" onclick="switchAdminTab('manage-cars')">Manage Cars</button> <button class="tab-btn" data-atab="add-car" onclick="switchAdminTab('add-car')">Add Car</button> <button class="tab-btn" data-atab="customers" onclick="switchAdminTab('customers')">Customers</button> <button class="tab-btn" data-atab="bookings" onclick="switchAdminTab('bookings')">Bookings</button>
+       </div><!-- Admin Tabs -->
+       <div id="atab-manage-cars" class="atab">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="admin-cars-grid">
+         <div class="text-center text-dark-500 py-12 col-span-full">
+          No cars added yet.
+         </div>
+        </div>
+       </div>
+       <div id="atab-add-car" class="atab hidden">
+        <div class="max-w-2xl mx-auto glass rounded-2xl p-8">
+         <h2 class="text-xl font-bold text-white mb-6">Add New Car</h2>
+         <form onsubmit="handleAddCar(event)" class="space-y-4" id="add-car-form">
+          <div class="grid sm:grid-cols-2 gap-4">
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="car-name">Car Name</label><input id="car-name" required placeholder="e.g. Toyota Innova">
+           </div>
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="car-id">Car ID</label><input id="car-id" required placeholder="e.g. AR-001">
+           </div>
+          </div>
+          <div>
+           <label class="text-xs text-dark-400 mb-1 block" for="car-image">Car Image URL</label><input id="car-image" placeholder="https://example.com/car.jpg (optional)">
+          </div>
+          <div class="grid sm:grid-cols-2 gap-4">
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="car-type-sel">Car Type</label><select id="car-type-sel" required><option value="">Select</option><option>Sedan</option><option>SUV</option><option>Luxury</option><option>Hatchback</option><option>MUV</option><option>Minivan</option><option>Convertible</option></select>
+           </div>
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="car-seater-sel">Seater</label><select id="car-seater-sel" required><option value="">Select</option><option>2</option><option>4</option><option>5</option><option>7</option><option>8</option></select>
+           </div>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-4">
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="car-fuel-sel">Fuel Type</label><select id="car-fuel-sel" required><option value="">Select</option><option>Petrol</option><option>Diesel</option><option>Electric</option><option>CNG</option><option>Hybrid</option></select>
+           </div>
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="car-mileage">Mileage (km/l)</label><input id="car-mileage" type="number" step="0.1" min="1" required placeholder="e.g. 15">
+           </div>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-4">
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="car-rent">Rent per km (₹)</label><input id="car-rent" type="number" step="0.5" min="1" required placeholder="e.g. 12">
+           </div>
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="car-ac-sel">AC / Non-AC</label><select id="car-ac-sel" required><option value="">Select</option><option>AC</option><option>Non-AC</option></select>
+           </div>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-4">
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="car-trans">Transmission</label><select id="car-trans" required><option value="">Select</option><option>Manual</option><option>Automatic</option></select>
+           </div>
+           <div>
+            <label class="text-xs text-dark-400 mb-1 block" for="car-color">Color</label><input id="car-color" required placeholder="e.g. White">
+           </div>
+          </div><button type="submit" class="btn-primary text-white w-full py-3 rounded-xl font-semibold" id="add-car-btn">Add Car</button>
+         </form>
+        </div>
+       </div>
+       <div id="atab-customers" class="atab hidden">
+        <div class="glass rounded-2xl overflow-x-auto">
+         <table class="w-full text-sm">
+          <thead>
+           <tr class="border-b border-dark-700">
+            <th class="px-4 py-3 text-left text-dark-400 font-medium">Name</th>
+            <th class="px-4 py-3 text-left text-dark-400 font-medium">Email</th>
+            <th class="px-4 py-3 text-left text-dark-400 font-medium">Mobile</th>
+            <th class="px-4 py-3 text-left text-dark-400 font-medium">Address</th>
+           </tr>
+          </thead>
+          <tbody id="admin-customers-body">
+           <tr>
+            <td colspan="4" class="px-4 py-8 text-center text-dark-500">No customers registered.</td>
+           </tr>
+          </tbody>
+         </table>
+        </div>
+       </div>
+       <div id="atab-bookings" class="atab hidden">
+        <div id="admin-bookings-list">
+         <div class="text-center text-dark-500 py-12">
+          No bookings yet.
+         </div>
+        </div>
+       </div>
+      </div>
+     </section>
+    </div><!-- BILL MODAL -->
+    <div id="bill-modal" class="modal-overlay hidden">
+     <div class="modal-content" id="bill-content"></div>
+    </div><!-- DELETE CONFIRM MODAL -->
+    <div id="delete-modal" class="modal-overlay hidden">
+     <div class="modal-content max-w-sm text-center">
+      <h3 class="text-xl font-bold text-white mb-4">Confirm Delete</h3>
+      <p class="text-dark-400 mb-6" id="delete-msg">Are you sure?</p>
+      <div class="flex gap-3 justify-center"><button onclick="closeDeleteModal()" class="px-6 py-2 rounded-xl glass text-dark-300 hover:text-white transition">Cancel</button> <button onclick="confirmDelete()" class="px-6 py-2 rounded-xl bg-red-600 text-white hover:bg-red-500 transition" id="confirm-del-btn">Delete</button>
+      </div>
+     </div>
+    </div>
+   </div><!-- pages-container --> <!-- Footer -->
+   <footer class="glass py-6 px-4 text-center">
+    <div class="max-w-6xl mx-auto">
+     <p class="text-dark-400 text-sm">© 2024 AR Car Rentals. All rights reserved.</p>
+     <p class="text-dark-500 text-xs mt-1">Serving Telangana &amp; Andhra Pradesh | <a href="tel:6301247034" class="text-brand-400 hover:underline">6301247034</a> | <a href="https://wa.me/916301247034" target="_blank" rel="noopener noreferrer" class="text-green-400 hover:underline">WhatsApp</a></p>
+    </div>
+   </footer>
+  </div><!-- app-wrapper -->
+  <script>
+// ============ STATE ============
+let allData = [];
+let currentPage = 'home';
+let loggedInCustomer = null;
+let loggedInAdmin = null;
+let sessionInterval = null;
+let sessionExpiry = null;
+let deleteCallback = null;
+
+const ADMINS = [
+  { username: 'anand', password: '123456' },
+  { username: 'ramakrishna', password: '123456' }
+];
+
+const SESSION_DURATION = 30 * 60 * 1000; // 30 minutes
+
+// ============ HELPERS ============
+function toast(msg, type='success') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+function getCars() { return allData.filter(d => d.type === 'car'); }
+function getCustomers() { return allData.filter(d => d.type === 'customer'); }
+function getBookings() { return allData.filter(d => d.type === 'booking'); }
+
+function getCarBookedDates(carId) {
+  return getBookings().filter(b => b.booking_car_id === carId && b.booking_status !== 'cancelled')
+    .map(b => ({ start: b.booking_start_date, end: b.booking_end_date }));
+}
+
+function isCarBookedOnDates(carId, start, end) {
+  const ranges = getCarBookedDates(carId);
+  for (const r of ranges) {
+    if (start <= r.end && end >= r.start) return true;
+  }
+  return false;
+}
+
+// ============ CAR SVG PLACEHOLDERS ============
+function carSVG(type) {
+  const colors = { Sedan:'#3b82f6', SUV:'#22c55e', Luxury:'#f59e0b', Hatchback:'#8b5cf6', MUV:'#ec4899', Minivan:'#06b6d4', Convertible:'#ef4444' };
+  const c = colors[type] || '#f97316';
+  return `<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%"><rect x="10" y="40" width="180" height="35" rx="10" fill="${c}" opacity="0.8"/><rect x="40" y="20" width="110" height="30" rx="8" fill="${c}" opacity="0.6"/><circle cx="55" cy="78" r="14" fill="#1e293b" stroke="${c}" stroke-width="3"/><circle cx="55" cy="78" r="6" fill="${c}" opacity="0.5"/><circle cx="145" cy="78" r="14" fill="#1e293b" stroke="${c}" stroke-width="3"/><circle cx="145" cy="78" r="6" fill="${c}" opacity="0.5"/><rect x="155" y="45" width="25" height="8" rx="4" fill="#fbbf24" opacity="0.8"/><rect x="20" y="45" width="25" height="8" rx="4" fill="#fbbf24" opacity="0.8"/><text x="100" y="58" text-anchor="middle" fill="white" font-size="10" font-family="Outfit" font-weight="700">${type||'CAR'}</text></svg>`;
+}
+
+function renderCarCard(car, actions='') {
+  const booked = getCarBookedDates(car.car_id);
+  const bookedHtml = booked.length ? `<div class="mt-2"><span class="text-xs text-yellow-400 font-medium">Booked:</span>${booked.map(b=>`<span class="badge badge-yellow text-[10px] ml-1">${b.start} → ${b.end}</span>`).join('')}</div>` : '';
+  const imgHtml = car.car_image && car.car_image.trim() ? `<img src="${car.car_image}" alt="${car.car_name}" loading="lazy" class="w-full h-40 object-cover rounded-xl" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="w-full h-40 rounded-xl bg-dark-800 items-center justify-center" style="display:none">${carSVG(car.car_type)}</div>` : `<div class="w-full h-40 rounded-xl bg-dark-800 flex items-center justify-center">${carSVG(car.car_type)}</div>`;
+  return `<div class="glass rounded-2xl overflow-hidden card-hover">
+    ${imgHtml}
+    <div class="p-4">
+      <div class="flex items-center justify-between mb-2"><h3 class="font-bold text-white">${car.car_name}</h3><span class="badge badge-orange">${car.car_type}</span></div>
+      <div class="grid grid-cols-2 gap-1 text-xs text-dark-400 mb-2">
+        <span>🪑 ${car.car_seater} Seater</span><span>⛽ ${car.car_fuel}</span>
+        <span>📏 ${car.car_mileage} km/l</span><span>💰 ₹${car.car_rent_per_km}/km</span>
+        <span>${car.car_ac === 'AC' ? '❄️ AC' : '🌀 Non-AC'}</span><span>⚙️ ${car.car_transmission}</span>
+        <span>🎨 ${car.car_color}</span><span>🆔 ${car.car_id}</span>
+      </div>
+      ${bookedHtml}
+      ${actions}
+    </div>
+  </div>`;
+}
+
+// ============ NAVIGATION ============
+function navigate(page) {
+  if ((page === 'customer' && !loggedInCustomer) || (page === 'admin' && !loggedInAdmin)) {
+    navigate('login');
+    return;
+  }
+  document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+  const el = document.getElementById('page-' + page);
+  if (el) { el.classList.remove('hidden'); el.classList.add('fade-in'); }
+  currentPage = page;
+  // Update nav
+  document.querySelectorAll('[data-nav]').forEach(n => n.classList.toggle('active', n.dataset.nav === page));
+  window.scrollTo(0, 0);
+  updateNavState();
+  if (page === 'cars') renderPublicCars();
+  if (page === 'customer') { renderCustCars(); renderMyBookings(); }
+  if (page === 'admin') { renderAdminCars(); renderAdminCustomers(); renderAdminBookings(); updateAdminStats(); }
+  if (page === 'home') renderHomeFeatured();
+}
+
+function updateNavState() {
+  const logged = loggedInCustomer || loggedInAdmin;
+  document.getElementById('nav-register').style.display = logged ? 'none' : '';
+  document.getElementById('nav-login').style.display = logged ? 'none' : '';
+  document.getElementById('mob-register').style.display = logged ? 'none' : '';
+  document.getElementById('mob-login').style.display = logged ? 'none' : '';
+  document.getElementById('mob-logout').classList.toggle('hidden', !logged);
+  const userInfo = document.getElementById('nav-user-info');
+  if (logged) {
+    userInfo.classList.remove('hidden');
+    userInfo.classList.add('flex');
+    document.getElementById('nav-username').textContent = loggedInCustomer ? loggedInCustomer.name : ('Admin: ' + loggedInAdmin);
+  } else {
+    userInfo.classList.add('hidden');
+    userInfo.classList.remove('flex');
+  }
+}
+
+function toggleMobile() {
+  document.getElementById('mobile-menu').classList.toggle('hidden');
+}
+
+function switchLoginTab(tab) {
+  document.getElementById('tab-customer-login').classList.toggle('active', tab === 'customer');
+  document.getElementById('tab-admin-login').classList.toggle('active', tab === 'admin');
+  document.getElementById('customer-login-form').classList.toggle('hidden', tab !== 'customer');
+  document.getElementById('admin-login-form').classList.toggle('hidden', tab !== 'admin');
+}
+
+function switchCustTab(tab) {
+  document.querySelectorAll('[data-ctab]').forEach(b => b.classList.toggle('active', b.dataset.ctab === tab));
+  document.querySelectorAll('.ctab').forEach(c => c.classList.add('hidden'));
+  document.getElementById('ctab-' + tab).classList.remove('hidden');
+  if (tab === 'avail') renderCustCars();
+  if (tab === 'mybookings' || tab === 'history') renderMyBookings();
+}
+
+function switchAdminTab(tab) {
+  document.querySelectorAll('[data-atab]').forEach(b => b.classList.toggle('active', b.dataset.atab === tab));
+  document.querySelectorAll('.atab').forEach(c => c.classList.add('hidden'));
+  document.getElementById('atab-' + tab).classList.remove('hidden');
+}
+
+// ============ SESSION MANAGEMENT ============
+function startSession(type) {
+  sessionExpiry = Date.now() + SESSION_DURATION;
+  clearInterval(sessionInterval);
+  const timerId = type === 'admin' ? 'admin-timer' : 'session-timer';
+  
+  // Initial display
+  const m = Math.floor(SESSION_DURATION / 60000);
+  const s = Math.floor((SESSION_DURATION % 60000) / 1000);
+  const el = document.getElementById(timerId);
+  if (el) el.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+  
+  // Update every second
+  sessionInterval = setInterval(() => {
+    const remaining = sessionExpiry - Date.now();
+    if (remaining <= 0) { 
+      clearInterval(sessionInterval);
+      handleLogout(); 
+      return; 
+    }
+    const m = Math.floor(remaining / 60000);
+    const s = Math.floor((remaining % 60000) / 1000);
+    const el = document.getElementById(timerId);
+    if (el) el.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+  }, 1000);
+}
+
+function handleLogout() {
+  loggedInCustomer = null;
+  loggedInAdmin = null;
+  clearInterval(sessionInterval);
+  toast('Logged out successfully', 'info');
+  navigate('home');
+  updateNavState();
+}
+
+// ============ REGISTRATION ============
+async function handleRegister(e) {
+  e.preventDefault();
+  const btn = document.getElementById('reg-btn');
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim().toLowerCase();
+  const password = document.getElementById('reg-password').value;
+  const mobile = document.getElementById('reg-mobile').value.trim();
+  const address = document.getElementById('reg-address').value.trim();
+
+  if (getCustomers().find(c => c.email === email)) { toast('Email already registered!', 'error'); return; }
+
+  btn.disabled = true; btn.textContent = 'Registering...';
+  try {
+    console.log('📝 Registering customer:', { name, email, mobile, address });
+    const result = await window.dataSdk.create({ 
+      type: 'customer', 
+      name, 
+      email, 
+      password, 
+      address, 
+      mobile 
+    });
+    
+    btn.disabled = false; btn.textContent = 'Register';
+    
+    if (result.isOk) {
+      console.log('✅ Registration successful!');
+      toast('Registration successful! Please login.');
+      e.target.reset();
+      navigate('login');
+    } else {
+      throw result.error;
+    }
+  } catch (err) {
+    btn.disabled = false; btn.textContent = 'Register';
+    console.error('❌ Registration error:', err);
+    toast('Error: ' + (err.message || 'Registration failed'), 'error');
+  }
+}
+
+// ============ CUSTOMER LOGIN ============
+function handleCustomerLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('cust-email').value.trim().toLowerCase();
+  const pass = document.getElementById('cust-password').value;
+  const customer = getCustomers().find(c => c.email === email && c.password === pass);
+  if (!customer) { toast('Invalid email or password!', 'error'); return; }
+  loggedInCustomer = customer;
+  loggedInAdmin = null;
+  startSession('customer');
+  document.getElementById('cust-dash-name').textContent = customer.name;
+  toast(`Welcome back, ${customer.name}!`);
+  navigate('customer');
+}
+
+// ============ ADMIN LOGIN ============
+function handleAdminLogin(e) {
+  e.preventDefault();
+  const user = document.getElementById('admin-user').value.trim();
+  const pass = document.getElementById('admin-pass').value;
+  const admin = ADMINS.find(a => a.username === user && a.password === pass);
+  if (!admin) { toast('Invalid admin credentials!', 'error'); return; }
+  loggedInAdmin = admin.username;
+  loggedInCustomer = null;
+  startSession('admin');
+  toast(`Welcome, Admin ${admin.username}!`);
+  navigate('admin');
+}
+
+// ============ ADD CAR (ADMIN) ============
+async function handleAddCar(e) {
+  e.preventDefault();
+  if (getCars().length >= 999) { toast('Maximum car limit reached!', 'error'); return; }
+  const btn = document.getElementById('add-car-btn');
+  
+  try {
+    // Get all form values
+    const carName = document.getElementById('car-name').value.trim();
+    const carId = document.getElementById('car-id').value.trim();
+    const carImage = document.getElementById('car-image').value.trim() || '';
+    const carType = document.getElementById('car-type-sel').value.trim();
+    const carSeatStr = document.getElementById('car-seater-sel').value.trim();
+    const carFuel = document.getElementById('car-fuel-sel').value.trim();
+    const carMileStr = document.getElementById('car-mileage').value.trim();
+    const carRentStr = document.getElementById('car-rent').value.trim();
+    const carAc = document.getElementById('car-ac-sel').value.trim();
+    const carTrans = document.getElementById('car-trans').value.trim();
+    const carColor = document.getElementById('car-color').value.trim();
+
+    // Validate all fields are filled
+    if (!carName || !carId || !carType || !carSeatStr || !carFuel || !carMileStr || !carRentStr || !carAc || !carTrans || !carColor) {
+      toast('❌ Please fill ALL fields!', 'error');
+      return;
+    }
+
+    // Parse numeric values
+    const seater = parseInt(carSeatStr);
+    const mileage = parseFloat(carMileStr);
+    const rentPerKm = parseFloat(carRentStr);
+
+    // Validate numeric values
+    if (isNaN(seater) || seater < 1 || isNaN(mileage) || mileage < 0.1 || isNaN(rentPerKm) || rentPerKm < 0.5) {
+      toast('❌ Invalid numbers! Seater≥1, Mileage≥0.1, Rent≥0.5', 'error');
+      return;
+    }
+
+    // Check if car ID already exists
+    if (getCars().find(c => c.car_id === carId)) {
+      toast('❌ Car ID already exists!', 'error');
+      return;
+    }
+
+    console.log('📝 Adding car:', { carName, carId, carType, seater, carFuel, mileage, rentPerKm, carAc, carTrans, carColor });
+
+    btn.disabled = true; btn.textContent = 'Adding...';
+
+    const carData = {
+      type: 'car',
+      car_name: carName,
+      car_id: carId,
+      car_image: carImage,
+      car_type: carType,
+      car_seater: seater,
+      car_fuel: carFuel,
+      car_mileage: mileage,
+      car_rent_per_km: rentPerKm,
+      car_ac: carAc,
+      car_transmission: carTrans,
+      car_color: carColor
+    };
+
+    console.log('🔵 Submitting to Data SDK:', carData);
+    const result = await window.dataSdk.create(carData);
+    
+    btn.disabled = false; btn.textContent = 'Add Car';
+
+    if (result.isOk) {
+      console.log('✅ Car added successfully!');
+      toast('✅ Car added successfully!', 'success');
+      e.target.reset();
+      switchAdminTab('manage-cars');
+    } else {
+      console.error('❌ Add car failed:', result.error);
+      toast('❌ Failed to add car: ' + (result.error?.message || 'Unknown error'), 'error');
+    }
+  } catch (err) {
+    console.error('❌ Add car exception:', err.message, err.stack);
+    btn.disabled = false; btn.textContent = 'Add Car';
+    toast('❌ Error: ' + err.message, 'error');
+  }
+}
+
+// ============ DELETE CAR (ADMIN) ============
+function showDeleteModal(msg, callback) {
+  document.getElementById('delete-msg').textContent = msg;
+  document.getElementById('delete-modal').classList.remove('hidden');
+  deleteCallback = callback;
+}
+function closeDeleteModal() { document.getElementById('delete-modal').classList.add('hidden'); deleteCallback = null; }
+async function confirmDelete() {
+  if (deleteCallback) { await deleteCallback(); }
+  closeDeleteModal();
+}
+
+async function deleteCar(carId) {
+  const car = getCars().find(c => c.car_id === carId);
+  if (!car) return;
+  showDeleteModal(`Delete car "${car.car_name}" (${carId})?`, async () => {
+    const btn = document.getElementById('confirm-del-btn');
+    btn.disabled = true; btn.textContent = 'Deleting...';
+    const result = await window.dataSdk.delete(car);
+    btn.disabled = false; btn.textContent = 'Delete';
+    if (result.isOk) toast('Car deleted.');
+    else toast('Failed to delete car.', 'error');
+  });
+}
+
+// ============ BOOKING ============
+function updateBookingCars() {
+  const type = document.getElementById('book-type').value;
+  const seater = document.getElementById('book-seater').value;
+  const sel = document.getElementById('book-car');
+  sel.innerHTML = '<option value="">-- Select --</option>';
+  if (!type || !seater) return;
+  const cars = getCars().filter(c => c.car_type === type && c.car_seater == seater);
+  if (!cars.length) { sel.innerHTML = '<option value="">No cars available for this selection</option>'; return; }
+  cars.forEach(c => { const o = document.createElement('option'); o.value = c.car_id; o.textContent = `${c.car_name} (₹${c.car_rent_per_km}/km, ${c.car_ac})`; sel.appendChild(o); });
+}
+
+async function handleBooking(e) {
+  e.preventDefault();
+  if (!loggedInCustomer) { toast('Please login first!', 'error'); return; }
+  if (getBookings().length >= 999) { toast('Maximum booking limit reached!', 'error'); return; }
+
+  const carId = document.getElementById('book-car').value;
+  const car = getCars().find(c => c.car_id === carId);
+  if (!car) { toast('Please select a valid car!', 'error'); return; }
+
+  const startDate = document.getElementById('book-start').value;
+  const endDate = document.getElementById('book-end').value;
+  if (!startDate || !endDate || startDate > endDate) { toast('Invalid date range!', 'error'); return; }
+  if (isCarBookedOnDates(carId, startDate, endDate)) { toast('Car is already booked for these dates! Please choose different dates.', 'error'); return; }
+
+  const distance = parseFloat(document.getElementById('book-distance').value);
+  const packageDays = parseInt(document.getElementById('book-package').value);
+  const passengers = parseInt(document.getElementById('book-passengers').value);
+  const purpose = document.getElementById('book-purpose').value.trim();
+  const from = document.getElementById('book-from').value.trim();
+  const to = document.getElementById('book-to').value.trim();
+  const lang = document.getElementById('book-lang').value;
+
+  // Calculate bill
+  const driverCharge = packageDays * 1000;
+  const tollCharge = distance > 100 ? 200 * Math.ceil(distance / 200) : 0;
+  const fuelPrice = car.car_fuel === 'Diesel' ? 92 : car.car_fuel === 'Petrol' ? 103 : car.car_fuel === 'CNG' ? 75 : car.car_fuel === 'Electric' ? 0 : 90;
+  const fuelCharge = Math.round((distance / car.car_mileage) * fuelPrice);
+  const rentCharge = Math.round(distance * car.car_rent_per_km);
+  const subtotal = driverCharge + tollCharge + fuelCharge + rentCharge;
+  const gst = Math.round(subtotal * 0.18);
+  const total = subtotal + gst;
+  const advance = Math.round(total * 0.5);
+
+  // Show bill
+  const billHtml = `
+    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2"><i data-lucide="receipt" style="width:24px;height:24px;color:#f97316"></i> Booking Bill</h2>
+    <div class="space-y-3 mb-6">
+      <div class="flex justify-between text-dark-300"><span>Car</span><span class="text-white font-medium">${car.car_name} (${car.car_type})</span></div>
+      <div class="flex justify-between text-dark-300"><span>Route</span><span class="text-white">${from} → ${to}</span></div>
+      <div class="flex justify-between text-dark-300"><span>Distance</span><span class="text-white">${distance} km</span></div>
+      <div class="flex justify-between text-dark-300"><span>Package</span><span class="text-white">${packageDays} days</span></div>
+      <div class="flex justify-between text-dark-300"><span>Passengers</span><span class="text-white">${passengers}</span></div>
+      <div class="flex justify-between text-dark-300"><span>Driver Language</span><span class="text-white">${lang}</span></div>
+      <hr class="border-dark-700">
+      <div class="flex justify-between text-dark-300"><span>Car Rent (${distance}km × ₹${car.car_rent_per_km})</span><span class="text-white">₹${rentCharge}</span></div>
+      <div class="flex justify-between text-dark-300"><span>Driver Charge (${packageDays} days × ₹1000)</span><span class="text-white">₹${driverCharge}</span></div>
+      <div class="flex justify-between text-dark-300"><span>Toll Charges</span><span class="text-white">₹${tollCharge}</span></div>
+      <div class="flex justify-between text-dark-300"><span>Fuel Charges</span><span class="text-white">₹${fuelCharge}</span></div>
+      <hr class="border-dark-700">
+      <div class="flex justify-between text-dark-300"><span>Subtotal</span><span class="text-white">₹${subtotal}</span></div>
+      <div class="flex justify-between text-dark-300"><span>GST (18%)</span><span class="text-white">₹${gst}</span></div>
+      <hr class="border-dark-700">
+      <div class="flex justify-between text-lg font-bold"><span class="text-brand-400">Total</span><span class="text-brand-400">₹${total}</span></div>
+      <div class="flex justify-between text-lg font-bold"><span class="text-yellow-400">50% Advance</span><span class="text-yellow-400">₹${advance}</span></div>
+    </div>
+    <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 mb-6">
+      <p class="text-yellow-300 text-sm font-medium">⚠️ IMPORTANT: Pay 50% advance (₹${advance}) to <span class="font-bold">6301247034</span> on booking date to confirm your car booking.</p>
+      <p class="text-yellow-400/70 text-xs mt-2">Your booking will be confirmed by admin after payment verification.</p>
+      <div id="bill-countdown" class="text-center mt-3 text-yellow-300 font-mono text-lg"></div>
+    </div>
+    <div class="flex gap-3">
+      <button onclick="closeBillModal()" class="flex-1 py-3 rounded-xl glass text-dark-300 hover:text-white transition font-medium">Cancel</button>
+      <button onclick="confirmBooking()" class="flex-1 btn-primary text-white py-3 rounded-xl font-semibold" id="confirm-book-btn">Confirm Booking</button>
+    </div>`;
+
+  document.getElementById('bill-content').innerHTML = billHtml;
+  document.getElementById('bill-modal').classList.remove('hidden');
+  lucide.createIcons();
+
+  // 20 second countdown
+  let countdown = 20;
+  const cdEl = document.getElementById('bill-countdown');
+  const cdInterval = setInterval(() => {
+    countdown--;
+    if (cdEl) cdEl.textContent = `Review time: ${countdown}s`;
+    if (countdown <= 0) clearInterval(cdInterval);
+  }, 1000);
+
+  // Store booking data temporarily
+  window._pendingBooking = {
+    type: 'booking',
+    booking_car_id: carId,
+    booking_car_name: car.car_name,
+    booking_car_type: car.car_type,
+    booking_customer_email: loggedInCustomer.email,
+    booking_passengers: passengers,
+    booking_purpose: purpose,
+    booking_start_date: startDate,
+    booking_end_date: endDate,
+    booking_from: from,
+    booking_to: to,
+    booking_distance: distance,
+    booking_driver_lang: lang,
+    booking_package: packageDays + ' days',
+    booking_driver_charge: driverCharge,
+    booking_toll_charge: tollCharge,
+    booking_fuel_charge: fuelCharge,
+    booking_subtotal: subtotal,
+    booking_gst: gst,
+    booking_total: total,
+    booking_advance_paid: false,
+    booking_approved: false,
+    booking_status: 'pending'
+  };
+}
+
+function closeBillModal() { document.getElementById('bill-modal').classList.add('hidden'); }
+
+async function confirmBooking() {
+  if (!window._pendingBooking) return;
+  const btn = document.getElementById('confirm-book-btn');
+  btn.disabled = true; btn.textContent = 'Booking...';
+  const result = await window.dataSdk.create(window._pendingBooking);
+  btn.disabled = false; btn.textContent = 'Confirm Booking';
+  if (result.isOk) {
+    toast('Booking placed! Pay 50% advance to confirm.');
+    closeBillModal();
+    document.getElementById('booking-form').reset();
+    document.getElementById('book-car').innerHTML = '<option value="">-- Select Car Type & Seater First --</option>';
+    switchCustTab('mybookings');
+  } else { toast('Booking failed. Try again.', 'error'); }
+  window._pendingBooking = null;
+}
+
+// ============ ADMIN APPROVE ============
+async function approveBooking(backendId) {
+  const booking = getBookings().find(b => b.__backendId === backendId);
+  if (!booking) return;
+  const btn = document.querySelector(`[data-approve="${backendId}"]`);
+  if (btn) { btn.disabled = true; btn.textContent = 'Approving...'; }
+  const result = await window.dataSdk.update({ ...booking, booking_advance_paid: true, booking_approved: true, booking_status: 'confirmed' });
+  if (btn) { btn.disabled = false; btn.textContent = 'Approve'; }
+  if (result.isOk) toast('Booking approved!');
+  else toast('Failed to approve.', 'error');
+}
+
+async function rejectBooking(backendId) {
+  const booking = getBookings().find(b => b.__backendId === backendId);
+  if (!booking) return;
+  const result = await window.dataSdk.update({ ...booking, booking_status: 'cancelled' });
+  if (result.isOk) toast('Booking cancelled.', 'info');
+  else toast('Failed.', 'error');
+}
+
+// ============ RENDER FUNCTIONS ============
+function renderPublicCars() {
+  const cars = filterCars(getCars(), 'filter-type', 'filter-seater', 'filter-fuel', 'filter-ac');
+  const grid = document.getElementById('public-cars-grid');
+  if (!cars.length) { grid.innerHTML = '<div class="text-center text-dark-500 py-12 col-span-full">No cars match your filters.</div>'; return; }
+  grid.innerHTML = cars.map(c => renderCarCard(c)).join('');
+}
+
+function renderCustCars() {
+  const cars = filterCars(getCars(), 'cust-filter-type', 'cust-filter-seater', 'cust-filter-fuel', 'cust-filter-ac');
+  const grid = document.getElementById('cust-cars-grid');
+  if (!cars.length) { grid.innerHTML = '<div class="text-center text-dark-500 py-12 col-span-full">No cars match.</div>'; return; }
+  grid.innerHTML = cars.map(c => renderCarCard(c, `<button onclick="selectCarForBooking('${c.car_id}')" class="mt-2 btn-primary text-white w-full py-2 rounded-lg text-sm font-medium">Book This Car</button>`)).join('');
+}
+
+function selectCarForBooking(carId) {
+  const car = getCars().find(c => c.car_id === carId);
+  if (!car) return;
+  switchCustTab('book');
+  document.getElementById('book-type').value = car.car_type;
+  document.getElementById('book-seater').value = car.car_seater;
+  updateBookingCars();
+  document.getElementById('book-car').value = carId;
+}
+
+function filterCars(cars, typeId, seaterId, fuelId, acId) {
+  const t = document.getElementById(typeId)?.value;
+  const s = document.getElementById(seaterId)?.value;
+  const f = document.getElementById(fuelId)?.value;
+  const a = document.getElementById(acId)?.value;
+  return cars.filter(c => (!t || c.car_type === t) && (!s || c.car_seater == s) && (!f || c.car_fuel === f) && (!a || c.car_ac === a));
+}
+
+function renderHomeFeatured() {
+  const cars = getCars().slice(0, 6);
+  const grid = document.getElementById('home-featured-cars');
+  document.getElementById('stat-cars').textContent = getCars().length;
+  if (!cars.length) { grid.innerHTML = '<div class="text-center text-dark-500 py-12 col-span-full">No cars available yet. Admin will add cars soon!</div>'; return; }
+  grid.innerHTML = cars.map(c => renderCarCard(c)).join('');
+}
+
+function renderAdminCars() {
+  const cars = getCars();
+  const grid = document.getElementById('admin-cars-grid');
+  if (!cars.length) { grid.innerHTML = '<div class="text-center text-dark-500 py-12 col-span-full">No cars added yet. Add your first car!</div>'; return; }
+  grid.innerHTML = cars.map(c => renderCarCard(c, `<button onclick="deleteCar('${c.car_id}')" class="mt-2 bg-red-500/20 text-red-400 w-full py-2 rounded-lg text-sm font-medium hover:bg-red-500/30 transition">Delete Car</button>`)).join('');
+}
+
+function renderAdminCustomers() {
+  const customers = getCustomers();
+  const body = document.getElementById('admin-customers-body');
+  if (!customers.length) { body.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-dark-500">No customers registered.</td></tr>'; return; }
+  body.innerHTML = customers.map(c => `<tr class="border-b border-dark-800 hover:bg-dark-800/50"><td class="px-4 py-3 text-white">${c.name}</td><td class="px-4 py-3 text-dark-300">${c.email}</td><td class="px-4 py-3 text-dark-300">${c.mobile}</td><td class="px-4 py-3 text-dark-300">${c.address}</td></tr>`).join('');
+}
+
+function renderAdminBookings() {
+  const bookings = getBookings();
+  const list = document.getElementById('admin-bookings-list');
+  if (!bookings.length) { list.innerHTML = '<div class="text-center text-dark-500 py-12">No bookings yet.</div>'; return; }
+  list.innerHTML = bookings.map(b => {
+    const statusBadge = b.booking_status === 'confirmed' ? '<span class="badge badge-green">Confirmed</span>' : b.booking_status === 'cancelled' ? '<span class="badge badge-red">Cancelled</span>' : '<span class="badge badge-yellow">Pending</span>';
+    const advBadge = b.booking_advance_paid ? '<span class="badge badge-green">Advance Paid</span>' : '<span class="badge badge-red">Advance Not Paid</span>';
+    const actions = b.booking_status === 'pending' ? `<div class="flex gap-2 mt-3"><button data-approve="${b.__backendId}" onclick="approveBooking('${b.__backendId}')" class="flex-1 bg-green-600 text-white py-2 rounded-lg text-sm hover:bg-green-500 transition">Approve (50% Paid)</button><button onclick="rejectBooking('${b.__backendId}')" class="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm hover:bg-red-500 transition">Reject</button></div>` : '';
+    return `<div class="glass rounded-2xl p-6 mb-4">
+      <div class="flex flex-wrap items-center gap-2 mb-3">${statusBadge} ${advBadge}</div>
+      <div class="grid sm:grid-cols-2 gap-2 text-sm">
+        <div class="text-dark-400">Car: <span class="text-white">${b.booking_car_name} (${b.booking_car_type})</span></div>
+        <div class="text-dark-400">Customer: <span class="text-white">${b.booking_customer_email}</span></div>
+        <div class="text-dark-400">Route: <span class="text-white">${b.booking_from} → ${b.booking_to}</span></div>
+        <div class="text-dark-400">Distance: <span class="text-white">${b.booking_distance} km</span></div>
+        <div class="text-dark-400">Dates: <span class="text-white">${b.booking_start_date} to ${b.booking_end_date}</span></div>
+        <div class="text-dark-400">Package: <span class="text-white">${b.booking_package}</span></div>
+        <div class="text-dark-400">Passengers: <span class="text-white">${b.booking_passengers}</span></div>
+        <div class="text-dark-400">Purpose: <span class="text-white">${b.booking_purpose}</span></div>
+        <div class="text-dark-400">Driver Lang: <span class="text-white">${b.booking_driver_lang}</span></div>
+        <div class="text-dark-400">Total: <span class="text-brand-400 font-bold">₹${b.booking_total}</span></div>
+      </div>
+      ${actions}
+    </div>`;
+  }).join('');
+}
+
+function renderMyBookings() {
+  if (!loggedInCustomer) return;
+  const bookings = getBookings().filter(b => b.booking_customer_email === loggedInCustomer.email);
+  const active = bookings.filter(b => b.booking_status !== 'cancelled');
+  const all = bookings;
+
+  const activeList = document.getElementById('my-bookings-list');
+  const historyList = document.getElementById('booking-history-list');
+
+  if (!active.length) { activeList.innerHTML = '<div class="text-center text-dark-500 py-12">No active bookings.</div>'; }
+  else { activeList.innerHTML = active.map(b => renderBookingCard(b)).join(''); }
+
+  if (!all.length) { historyList.innerHTML = '<div class="text-center text-dark-500 py-12">No booking history.</div>'; }
+  else { historyList.innerHTML = all.map(b => renderBookingCard(b)).join(''); }
+}
+
+function renderBookingCard(b) {
+  const statusBadge = b.booking_status === 'confirmed' ? '<span class="badge badge-green">Confirmed</span>' : b.booking_status === 'cancelled' ? '<span class="badge badge-red">Cancelled</span>' : '<span class="badge badge-yellow">Pending Approval</span>';
+  const payBadge = b.booking_advance_paid ? '<span class="badge badge-green">50% Advance Paid ✓</span>' : '<span class="badge badge-red">50% Advance Not Paid</span>';
+  return `<div class="glass rounded-2xl p-6 mb-4">
+    <div class="flex flex-wrap items-center gap-2 mb-3">${statusBadge} ${payBadge}</div>
+    <div class="grid sm:grid-cols-2 gap-2 text-sm">
+      <div class="text-dark-400">Car: <span class="text-white">${b.booking_car_name}</span></div>
+      <div class="text-dark-400">Route: <span class="text-white">${b.booking_from} → ${b.booking_to}</span></div>
+      <div class="text-dark-400">Dates: <span class="text-white">${b.booking_start_date} to ${b.booking_end_date}</span></div>
+      <div class="text-dark-400">Package: <span class="text-white">${b.booking_package}</span></div>
+      <div class="text-dark-400">Distance: <span class="text-white">${b.booking_distance} km</span></div>
+      <div class="text-dark-400">Passengers: <span class="text-white">${b.booking_passengers}</span></div>
+    </div>
+    <div class="mt-3 pt-3 border-t border-dark-700 grid sm:grid-cols-2 gap-2 text-sm">
+      <div class="text-dark-400">Driver: <span class="text-white">₹${b.booking_driver_charge}</span></div>
+      <div class="text-dark-400">Toll: <span class="text-white">₹${b.booking_toll_charge}</span></div>
+      <div class="text-dark-400">Fuel: <span class="text-white">₹${b.booking_fuel_charge}</span></div>
+      <div class="text-dark-400">GST: <span class="text-white">₹${b.booking_gst}</span></div>
+      <div class="text-dark-400 font-bold">Total: <span class="text-brand-400">₹${b.booking_total}</span></div>
+      <div class="text-dark-400 font-bold">Advance (50%): <span class="text-yellow-400">₹${Math.round(b.booking_total * 0.5)}</span></div>
+    </div>
+    ${!b.booking_advance_paid && b.booking_status === 'pending' ? `<div class="mt-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 text-yellow-300 text-sm">💰 Pay ₹${Math.round(b.booking_total * 0.5)} to <strong>6301247034</strong> to confirm booking.</div>` : ''}
+  </div>`;
+}
+
+function updateAdminStats() {
+  const cars = getCars();
+  const bookings = getBookings().filter(b => b.booking_status !== 'cancelled');
+  const bookedIds = new Set(bookings.map(b => b.booking_car_id));
+  document.getElementById('admin-total-cars').textContent = cars.length;
+  document.getElementById('admin-booked-cars').textContent = bookedIds.size;
+  document.getElementById('admin-free-cars').textContent = cars.length - bookedIds.size;
+  document.getElementById('admin-total-customers').textContent = getCustomers().length;
+}
+
+// ============ DATA MANAGEMENT (Flask Backend) ============
+const API_BASE = 'http://localhost:5000/api';
+
+async function apiCall(endpoint, method = 'GET', data = null) {
+  try {
+    const options = {
+      method,
+      headers: { 'Content-Type': 'application/json' }
+    };
+    if (data) options.body = JSON.stringify(data);
+    const res = await fetch(API_BASE + endpoint, options);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.error('❌ API Error:', err);
+    throw err;
+  }
+}
+
+async function loadAllData() {
+  try {
+    const response = await apiCall('/data');
+    allData = response.data || [];
+    console.log('✅ Data loaded from backend:', allData.length, 'records');
+    // Refresh UI
+    if (currentPage === 'home') renderHomeFeatured();
+    if (currentPage === 'cars') renderPublicCars();
+    if (currentPage === 'customer') { renderCustCars(); renderMyBookings(); }
+    if (currentPage === 'admin') { renderAdminCars(); renderAdminCustomers(); renderAdminBookings(); updateAdminStats(); }
+  } catch (err) {
+    toast('Failed to load data', 'error');
+  }
+}
+
+// Override Data SDK with Flask backend
+window.dataSdk = {
+  async create(data) {
+    try {
+      const response = await apiCall('/data', 'POST', data);
+      await loadAllData();
+      return { isOk: true, isError: false };
+    } catch (err) {
+      return { isOk: false, isError: true, error: err };
+    }
+  },
+  
+  async update(data) {
+    try {
+      const response = await apiCall('/data/' + data.__backendId, 'PUT', data);
+      await loadAllData();
+      return { isOk: true, isError: false };
+    } catch (err) {
+      return { isOk: false, isError: true, error: err };
+    }
+  },
+  
+  async delete(data) {
+    try {
+      const response = await apiCall('/data/' + data.__backendId, 'DELETE');
+      await loadAllData();
+      return { isOk: true, isError: false };
+    } catch (err) {
+      return { isOk: false, isError: true, error: err };
+    }
+  },
+  
+  async init(handler) {
+    try {
+      await loadAllData();
+      console.log('✅ Backend initialized');
+      return { isOk: true, isError: false };
+    } catch (err) {
+      return { isOk: false, isError: true, error: err };
+    }
+  }
+};
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', async () => {
+  await window.dataSdk.init();
+  lucide.createIcons();
+});
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e8212a5137147e9',t:'MTc3NTQ5MTkzMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
